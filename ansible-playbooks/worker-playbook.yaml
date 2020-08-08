@@ -92,7 +92,7 @@
 
 
   - name: Copy the join command to server location
-    copy: src=join-command.tmp dest=/tmp/join-command.sh mode=0777
+    copy: src=../tmp/join-command dest=/tmp/join-command.sh mode=0777
 
   - name: Join the node to cluster
     command: sh /tmp/join-command.sh

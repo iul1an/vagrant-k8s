@@ -12,7 +12,7 @@ Vagrant.configure("2") do |config|
         master.vm.network "private_network", ip: "192.168.50.10"
         master.vm.hostname = "k8s-master"
         master.vm.provision "ansible" do |ansible|
-            ansible.playbook = "kubernetes-setup/master-playbook.yml"
+            ansible.playbook = "ansible-playbooks/master-playbook.yaml"
             ansible.extra_vars = {
                 node_ip: "192.168.50.10",
                 metallb_addresses: "192.168.50.100-192.168.50.254"
@@ -20,12 +20,12 @@ Vagrant.configure("2") do |config|
         end
     end
     (1..N).each do |i|
-        config.vm.define "k8s-node-#{i}" do |node|
-            node.vm.box = IMAGE_NAME
-            node.vm.network "private_network", ip: "192.168.50.#{i + 10}"
-            node.vm.hostname = "k8s-node-#{i}"
-            node.vm.provision "ansible" do |ansible|
-                ansible.playbook = "kubernetes-setup/node-playbook.yml"
+        config.vm.define "k8s-worker-#{i}" do |worker|
+            worker.vm.box = IMAGE_NAME
+            worker.vm.network "private_network", ip: "192.168.50.#{i + 10}"
+            worker.vm.hostname = "k8s-worker-#{i}"
+            worker.vm.provision "ansible" do |ansible|
+                ansible.playbook = "ansible-playbooks/worker-playbook.yaml"
                 ansible.extra_vars = {
                     node_ip: "192.168.50.#{i + 10}",
                 }
