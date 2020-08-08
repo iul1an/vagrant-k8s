@@ -1,0 +1,8 @@
+*.swp
+*/*.swp
+tmp
+venv
+.venv
+*.tmp
+*/*.tmp
+.vagrant
