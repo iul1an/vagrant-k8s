@@ -12,8 +12,8 @@ Deploy a local vm-based Kubernetes cluster using Vagrant, VirtualBox and Ansible
 git clone https://github.com/iul1an/vagrant-k8s.git
 ```
 
-- Update the ***Vagrantfile*** file according to you needs:
-  - Number of worker nodes
+- Update the ***Vagrantfile*** file according to your needs:
+  - Number of worker nodes (default: 2)
   - Network:
     - IP addresses
     - MetalLB network segment
@@ -21,7 +21,7 @@ git clone https://github.com/iul1an/vagrant-k8s.git
 cd vagrant-k8s
 $EDITOR Vagrantfile
 ```
-- Install Ansible (skip this step if you already have Ansible)
+- Install Ansible (***skip*** this step if you already have Ansible)
 
 ```
 pip install -r requirements.txt
