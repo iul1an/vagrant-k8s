@@ -33,4 +33,13 @@ pip install -r requirements.txt
 vagrant up
 ```
 
-##
+## Usage
+```
+vagrant ssh k8s-master
+kubectl <action> <object>
+```
+OR
+```
+export KUBECONFIG=tmp/kubectl/config
+kubectl <action> <object>
+```
