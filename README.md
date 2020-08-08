@@ -1,6 +1,4 @@
 # vagrant-k8s
-Kubernetes cluster deployment using Vagrant (VirtualBox)
-
 Deploy a local vm-based Kubernetes cluster using Vagrant, VirtualBox and Ansible.
 
 ## Requirements
