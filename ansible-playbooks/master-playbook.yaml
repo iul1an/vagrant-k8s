@@ -124,6 +124,14 @@
     become: false
     command: kubectl create -f https://docs.projectcalico.org/manifests/canal.yaml
 
+  - name: Remove master taint for single node cluster
+    become: false
+    command: "{{ item }}"
+    with_items:
+      - kubectl taint nodes --all node-role.kubernetes.io/master-
+      - kubectl label nodes --all node-role.kubernetes.io/worker=""
+    when: single_node_cluster
+
   - name: Install MetalLB
     become: false
     command: "{{ item }}"
@@ -157,10 +165,12 @@
   - name: Generate join command
     command: kubeadm token create --print-join-command
     register: join_command
+    when: not single_node_cluster
 
   - name: Copy join command to local file
     local_action: copy content="{{ join_command.stdout_lines[0] }}" dest="../tmp/join-command"
     become: false
+    when: not single_node_cluster
 
   handlers:
     - name: docker status

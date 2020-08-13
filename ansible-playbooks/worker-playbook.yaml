@@ -90,12 +90,17 @@
       daemon_reload: yes
       state: restarted
 
-
   - name: Copy the join command to server location
     copy: src=../tmp/join-command dest=/tmp/join-command.sh mode=0777
 
   - name: Join the node to cluster
     command: sh /tmp/join-command.sh
+
+  - name: Set node labels for {{ inventory_hostname }}
+    become: false
+    command: "{{ item }}"
+    with_items:
+      - kubectl --kubeconfig=/vagrant/tmp/kubectl/config label nodes {{ inventory_hostname }} node-role.kubernetes.io/worker=""
 
   handlers:
     - name: docker status
