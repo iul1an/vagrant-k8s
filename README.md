@@ -14,6 +14,7 @@ git clone https://github.com/iul1an/vagrant-k8s.git
 
 - Update the ***Vagrantfile*** file according to your needs:
   - Number of worker nodes (default: 2); setting it to 0 will create a single node cluster
+  - Hardware resources: CPU, memory
   - Network:
     - IP addresses
     - MetalLB network segment
