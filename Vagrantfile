@@ -1,6 +1,6 @@
 IMAGE_NAME = "bento/ubuntu-20.04"
-N = 2
-N == 0 ? (SINGLE_NODE_CLUSTER = true) : (SINGLE_NODE_CLUSTER = false)
+WORKERS = 0
+WORKERS == 0 ? (SINGLE_NODE_CLUSTER = true) : (SINGLE_NODE_CLUSTER = false)
 
 Vagrant.configure("2") do |config|
     config.ssh.insert_key = false
@@ -21,7 +21,7 @@ Vagrant.configure("2") do |config|
         end
     end
     unless SINGLE_NODE_CLUSTER
-        (1..N).each do |i|
+        (1..WORKERS).each do |i|
             config.vm.define "k8s-worker-#{i}" do |worker|
                 worker.vm.box = IMAGE_NAME
                 worker.vm.network "private_network", ip: "192.168.50.#{i + 10}"
