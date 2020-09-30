@@ -2,6 +2,13 @@
 - hosts: all
   become: true
   tasks:
+  - name: Switch nftables to iptables
+    shell:
+      cmd: "{{ item }}"
+    loop:
+      - update-alternatives --set iptables /usr/sbin/iptables-legacy
+      - update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
+
   - name: Install packages that allow apt to be used over HTTPS
     apt:
       name: "{{ packages }}"
@@ -17,12 +24,12 @@
 
   - name: Add an apt signing key for Docker
     apt_key:
-      url: https://download.docker.com/linux/ubuntu/gpg
+      url: https://download.docker.com/linux/debian/gpg
       state: present
 
   - name: Add apt repository for stable version
     apt_repository:
-      repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable
+      repo: deb https://download.docker.com/linux/debian buster stable
       state: present
 
   - name: Install docker and its dependencies
@@ -124,9 +131,12 @@
       content: |
         which kubectl &>/dev/null && source <(kubectl completion bash)
 
+  - name: Copy the Calico CNI manifest
+    copy: src=files/cni/calico.yaml dest=/tmp/calico.yaml
+
   - name: Install CNI
     become: false
-    command: kubectl create -f https://docs.projectcalico.org/manifests/canal.yaml
+    command: kubectl create -f /tmp/calico.yaml
 
   - name: Remove master taint for single node cluster
     become: false

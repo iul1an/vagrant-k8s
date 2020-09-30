@@ -1,6 +1,8 @@
 # vagrant-k8s
 Deploy a local vm-based Kubernetes cluster using Vagrant, VirtualBox and Ansible.
 
+This branch is specifically made to work with Debian 10
+
 ## Requirements
 - [Vagrant](https://www.vagrantup.com/downloads)
 - [VirtualBox](https://www.virtualbox.org/wiki/Downloads)
