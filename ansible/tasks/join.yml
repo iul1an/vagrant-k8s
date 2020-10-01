@@ -1,0 +1,35 @@
+- name: Check if Kubernetes has already been joined
+  stat:
+    path: /etc/kubernetes/admin.conf
+  register: kubernetes_join_stat
+
+- name: Check if kubeconfig for vagrant user exists
+  stat:
+    path: /home/vagrant/.kube/config
+  register: kubeconfig_stat
+
+- name: Copy the join command to server location
+  copy: src=../tmp/join-command dest=/tmp/join-command.sh mode=0644
+
+- name: Join the node to cluster
+  command: >
+    bash -c "$(cat /tmp/join-command.sh) --apiserver-advertise-address={{ node_ip }}"
+  register: kubeadm_join
+  when: not kubernetes_join_stat.stat.exists
+
+- name: Setup kubeconfig for vagrant user
+  command: "{{ item }}"
+  with_items:
+   - mkdir -p /home/vagrant/.kube
+   - cp -i /etc/kubernetes/admin.conf /home/vagrant/.kube/config
+   - chown vagrant:vagrant /home/vagrant/.kube/config
+  when: not kubeconfig_stat.stat.exists
+
+- name: Remove master taint and add worker label
+  become: false
+  command: "{{ item }}"
+  with_items:
+    - kubectl taint nodes {{ inventory_hostname }} node-role.kubernetes.io/master-
+    - kubectl label nodes {{ inventory_hostname }} node-role.kubernetes.io/worker=""
+  ignore_errors: yes
+

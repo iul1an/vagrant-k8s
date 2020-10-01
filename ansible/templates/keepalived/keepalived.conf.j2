@@ -1,0 +1,15 @@
+vrrp_instance kube-apiserver {
+  interface                 {{ vrrp_interface }}
+  state                     {{ vrrp_state }}
+  virtual_router_id         23
+  priority                  {{ vrrp_priority }}
+  advert_int                1
+  garp_master_delay         5
+  authentication {
+    auth_type PASS
+    auth_pass 123abcd
+  }
+  virtual_ipaddress {
+    {{ virtual_ip }} dev {{ vrrp_interface }}
+  }
+}

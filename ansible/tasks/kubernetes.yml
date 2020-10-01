@@ -1,0 +1,43 @@
+- name: Add an apt signing key for Kubernetes
+  apt_key:
+    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+    state: present
+
+- name: Adding apt repository for Kubernetes
+  apt_repository:
+    repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
+    state: present
+    filename: kubernetes.list
+
+- name: Install Kubernetes binaries
+  apt: 
+    name: "{{ packages }}"
+    state: present
+    update_cache: yes
+  vars:
+    packages:
+      - kubelet 
+      - kubeadm 
+      - kubectl
+  notify:
+    - kubelet status
+
+- name: Enable kubectl bash completion
+  copy:
+    dest: /etc/profile.d/kubectl-completion.sh
+    content: |
+      which kubectl &>/dev/null && source <(kubectl completion bash)
+
+- name: Configure node ip for kubelet
+  copy:
+    dest: /etc/default/kubelet
+    content: |
+      KUBELET_EXTRA_ARGS=--node-ip={{ node_ip }}
+  register: kubelet_env_file
+
+- name: Restart kubelet
+  service:
+    name: kubelet
+    daemon_reload: yes
+    state: restarted
+  when: kubelet_env_file is changed

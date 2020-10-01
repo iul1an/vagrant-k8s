@@ -3655,7 +3655,7 @@ spec:
               value: "autodetect"
             # IP autodetection when using multiple interfaces
             - name: IP_AUTODETECTION_METHOD
-              value: "cidr=192.168.50.0/24"
+              value: "cidr={{ cidr }}"
             # IPv4 address to use as the source hint on device routes programmed by Felix
             - name: FELIX_DEVICEROUTESOURCEADDRESS
               valueFrom:

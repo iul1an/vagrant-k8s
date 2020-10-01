@@ -1,0 +1,68 @@
+- name: Check if Kubernetes has already been initialized.
+  stat:
+    path: /etc/kubernetes/admin.conf
+  register: kubernetes_init_stat
+
+- name: Check if kubeconfig for vagrant user exists
+  stat:
+    path: /home/vagrant/.kube/config
+  register: kubeconfig_stat
+
+- name: Initialize the Kubernetes cluster using kubeadm
+  command: >
+    kubeadm init \
+      --apiserver-advertise-address={{ node_ip }} \
+      --apiserver-cert-extra-sans={{ node_ip }}  \
+      --node-name={{ inventory_hostname }} \
+      --pod-network-cidr=10.244.0.0/16 \
+      --service-cidr=10.245.0.0/16 \
+      --control-plane-endpoint={{ virtual_ip }}:{{ apiserver_lb_port }}
+  register: kubeadm_init
+  when: not kubernetes_init_stat.stat.exists
+
+- name: Setup kubeconfig for vagrant user
+  command: "{{ item }}"
+  with_items:
+   - mkdir -p /home/vagrant/.kube
+   - cp -i /etc/kubernetes/admin.conf /home/vagrant/.kube/config
+   - chown vagrant:vagrant /home/vagrant/.kube/config
+  when: not kubeconfig_stat.stat.exists
+
+- name: Remove master taint and add worker label
+  become: false
+  command: "{{ item }}"
+  with_items:
+    - kubectl taint nodes {{ inventory_hostname }} node-role.kubernetes.io/master-
+    - kubectl label nodes {{ inventory_hostname }} node-role.kubernetes.io/worker=""
+  ignore_errors: yes
+
+- name: Create Calico manifest from template
+  template:
+    src: ../templates/calico/calico.yaml.j2
+    dest: /tmp/calico.yaml
+  register: calico_manifest
+
+- name: Install Calico
+  become: false
+  command: >
+    kubectl apply -f /tmp/calico.yaml
+
+- name: Fetch kubectl config
+  fetch:
+    src: /etc/kubernetes/admin.conf
+    dest: ../tmp/config
+    flat: yes
+
+- name: Generate token
+  command: kubeadm token create --print-join-command
+  register: join_token
+
+- name: Get certificate key
+  command: >
+    kubeadm init phase upload-certs --upload-certs
+  register: certificate_key
+
+- name: Copy join command to local file
+  local_action: copy content="{{ join_token.stdout_lines[0] }} --control-plane --certificate-key {{ certificate_key.stdout_lines[2] }}" dest="../tmp/join-command"
+  become: false
+

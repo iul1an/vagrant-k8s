@@ -1,0 +1,19 @@
+---
+- hosts: all
+  become: true
+  handlers:
+  - include: handlers/handlers.yml
+  tasks:
+  - include_tasks: tasks/iptables-legacy.yml
+  - include_tasks: tasks/dependencies.yml
+  - include_tasks: tasks/sysctls.yml
+  - include_tasks: tasks/keepalived.yml
+  - include_tasks: tasks/haproxy.yml
+  - include_tasks: tasks/docker.yml
+  - include_tasks: tasks/kubernetes.yml
+  - include_tasks: tasks/init.yml
+    when: init|bool
+  - include_tasks: tasks/metallb.yml
+    when: init|bool
+  - include_tasks: tasks/join.yml
+    when: not init|bool

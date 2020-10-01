@@ -1,0 +1,40 @@
+global
+  daemon  
+  group  haproxy
+  log  127.0.0.1 local0 alert
+  maxconn  32768
+  nbproc  2
+  ssl-default-bind-ciphers  ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:AES256-SHA:AES:CAMELLIA:DES-CBC3-SHA:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!aECDH:!EDH-DSS-DES-CBC3-SHA:!EDH-RSA-DES-CBC3-SHA:!KRB5-DES-CBC3-SHA
+  tune.ssl.default-dh-param  2048
+  user  haproxy
+
+defaults
+  backlog  20000
+  log  global
+  option  redispatch
+  option  dontlognull
+  option  contstats
+  retries  3
+  timeout  http-request 20s
+  timeout  queue 30s
+  timeout  http-keep-alive 40s
+  timeout  tarpit 1m
+  timeout  check 10s
+  timeout  connect 60s
+  timeout  client 2h
+  timeout  server 2h
+
+listen apiserver
+  bind {{ virtual_ip }}:{{ apiserver_lb_port }}
+  mode tcp
+{% for i in range(3)%}
+  server server-{{ 1 + i }} 192.168.50.{{ 11 + i }}:6443 check inter 3s fall 3 rise 2 maxconn 400
+{% endfor %}
+
+listen stats
+  bind 0.0.0.0:8081 
+  mode http
+  stats uri /
+  stats auth admin:parolahaproxy
+  stats admin if TRUE
+

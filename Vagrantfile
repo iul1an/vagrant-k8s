@@ -1,37 +1,38 @@
-WORKERS = 2
-WORKERS == 0 ? (SINGLE_NODE_CLUSTER = true) : (SINGLE_NODE_CLUSTER = false)
-
 Vagrant.configure("2") do |config|
+
     config.ssh.insert_key = false
     config.vm.provider "virtualbox" do |v|
-        SINGLE_NODE_CLUSTER ? (v.memory = 4096; v.cpus = 4) : (v.memory = 2048; v.cpus = 2)
+        v.cpus = 2
+        v.memory = 4096
     end
-    config.vm.define "k8s-master" do |master|
-        master.vm.box = "debian/buster64"
-        master.vm.network "private_network", ip: "192.168.50.10"
-        master.vm.hostname = "k8s-master"
-        master.vm.provision "ansible" do |ansible|
-            ansible.playbook = "ansible-playbooks/master-playbook.yaml"
-            ansible.extra_vars = {
-                node_ip: "192.168.50.10",
-                metallb_addresses: "192.168.50.100-192.168.50.254",
-                single_node_cluster: SINGLE_NODE_CLUSTER
-            }
-        end
-    end
-    unless SINGLE_NODE_CLUSTER
-        (1..WORKERS).each do |i|
-            config.vm.define "k8s-worker-#{i}" do |worker|
-                worker.vm.box = "debian/buster64"
-                worker.vm.network "private_network", ip: "192.168.50.#{i + 10}"
-                worker.vm.hostname = "k8s-worker-#{i}"
-                worker.vm.provision "ansible" do |ansible|
-                    ansible.playbook = "ansible-playbooks/worker-playbook.yaml"
-                    ansible.extra_vars = {
-                        node_ip: "192.168.50.#{i + 10}"
-                    }
-                end
+
+    (1..3).each do |i|
+        config.vm.define "server-#{i}" do |server|
+            if i == 1
+              INIT = true
+              VRRP_STATE = "MASTER"
+            else
+              INIT = false
+              VRRP_STATE = "BACKUP"
+            end
+            server.vm.box = "debian/buster64"
+            server.vm.network "private_network", ip: "192.168.50.#{i + 10}"
+            server.vm.hostname = "server-#{i}"
+            server.vm.provision "ansible" do |ansible|
+                ansible.playbook = "ansible/playbook.yml"
+                ansible.extra_vars = {
+                    cidr: "192.168.50.0/24",
+                    node_ip: "192.168.50.#{i + 10}",
+                    vrrp_state: "#{VRRP_STATE}",
+                    vrrp_priority: "#{100 - i}",
+                    vrrp_interface: "eth1",
+                    virtual_ip: "192.168.50.101",
+                    apiserver_lb_port: "8443",
+                    init: "#{INIT}",
+                    metallb_addresses: "192.168.50.150-192.168.50.254",
+                }
             end
         end
     end
+
 end

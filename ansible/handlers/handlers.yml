@@ -1,0 +1,12 @@
+- name: docker status
+  service: name=docker state=started
+
+- name: haproxy status
+  service: name=haproxy state=started
+
+- name: keepalived status
+  service: name=keepalived state=started
+
+- name: kubelet status
+  service: name=kubelet state=started
+
