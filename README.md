@@ -37,11 +37,11 @@ vagrant up
 
 ## Usage
 ```
-vagrant ssh k8s-master
+vagrant ssh server-1
 kubectl <action> <object>
 ```
 OR
 ```
-export KUBECONFIG=tmp/kubectl/config
+export KUBECONFIG=tmp/config
 kubectl <action> <object>
 ```
