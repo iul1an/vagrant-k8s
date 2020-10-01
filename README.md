@@ -1,7 +1,7 @@
 # vagrant-k8s
 Deploy a local vm-based Kubernetes cluster using Vagrant, VirtualBox and Ansible.
 
-This branch is specifically made to work with Debian 10 and it will create a HA Kubernetes cluster with 3 nodes
+This branch is specifically made to work with ***Debian 10*** and it will create a ***HA Kubernetes cluster with 3 nodes***
 
 ## Requirements
 - [Vagrant](https://www.vagrantup.com/downloads)
